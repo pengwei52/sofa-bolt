@@ -46,12 +46,16 @@ import io.netty.util.Attribute;
 public class ConnectionEventHandler extends ChannelDuplexHandler {
     private static final Logger     logger = BoltLoggerFactory.getLogger("ConnectionEvent");
 
+    // 连接管理器
     private ConnectionManager       connectionManager;
 
+    // 连接事件监听器
     private ConnectionEventListener eventListener;
 
+    // 使用线程池分发处理连接事件
     private ConnectionEventExecutor eventExecutor;
 
+    // 重连管理器
     private ReconnectManager        reconnectManager;
 
     private GlobalSwitch            globalSwitch;
@@ -68,13 +72,10 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
      * @see io.netty.channel.ChannelDuplexHandler#connect(io.netty.channel.ChannelHandlerContext, java.net.SocketAddress, java.net.SocketAddress, io.netty.channel.ChannelPromise)
      */
     @Override
-    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
-                        SocketAddress localAddress, ChannelPromise promise) throws Exception {
+    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
         if (logger.isInfoEnabled()) {
-            final String local = localAddress == null ? null : RemotingUtil
-                .parseSocketAddressToString(localAddress);
-            final String remote = remoteAddress == null ? "UNKNOWN" : RemotingUtil
-                .parseSocketAddressToString(remoteAddress);
+            final String local = localAddress == null ? null : RemotingUtil.parseSocketAddressToString(localAddress);
+            final String remote = remoteAddress == null ? "UNKNOWN" : RemotingUtil.parseSocketAddressToString(remoteAddress);
             if (local == null) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Try connect to {}", remote);
@@ -121,8 +122,7 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        infoLog("Connection channel unregistered: {}",
-            RemotingUtil.parseRemoteAddress(ctx.channel()));
+        infoLog("Connection channel unregistered: {}", RemotingUtil.parseRemoteAddress(ctx.channel()));
         super.channelUnregistered(ctx);
     }
 
@@ -155,15 +155,15 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
     public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
         if (event instanceof ConnectionEventType) {
             switch ((ConnectionEventType) event) {
+            	// channel.pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT);
                 case CONNECT:
                     Channel channel = ctx.channel();
                     if (null != channel) {
+                    	// 从 AttributeMap 中将 CONNETION 对象取出
                         Connection connection = channel.attr(Connection.CONNECTION).get();
-                        this.onEvent(connection, connection.getUrl().getOriginUrl(),
-                            ConnectionEventType.CONNECT);
+                        this.onEvent(connection, connection.getUrl().getOriginUrl(), ConnectionEventType.CONNECT);
                     } else {
-                        logger
-                            .warn("channel null when handle user triggered event in ConnectionEventHandler!");
+                        logger.warn("channel null when handle user triggered event in ConnectionEventHandler!");
                     }
                     break;
                 default:
@@ -191,8 +191,7 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
      * @param remoteAddress
      * @param type
      */
-    private void onEvent(final Connection conn, final String remoteAddress,
-                         final ConnectionEventType type) {
+    private void onEvent(final Connection conn, final String remoteAddress, final ConnectionEventType type) {
         if (this.eventListener != null) {
             this.eventExecutor.onEvent(new Runnable() {
                 @Override

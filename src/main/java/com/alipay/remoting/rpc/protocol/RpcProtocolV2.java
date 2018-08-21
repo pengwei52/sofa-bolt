@@ -80,10 +80,15 @@ public class RpcProtocolV2 implements Protocol {
      */
     private static final int REQUEST_HEADER_LEN  = 22 + 2;
     private static final int RESPONSE_HEADER_LEN = 20 + 2;
+    // 编码器
     private CommandEncoder   encoder;
+    // 解码器
     private CommandDecoder   decoder;
+    // 心跳处理器
     private HeartbeatTrigger heartbeatTrigger;
+    // Command处理器
     private CommandHandler   commandHandler;
+    // Command工厂(构造Command对象)
     private CommandFactory   commandFactory;
 
     public RpcProtocolV2() {

@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConnectionEventListener {
 
-    private ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>> processors = new ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>>(
-                                                                                                  3);
+	// 缓存事件处理器
+    private ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>> processors = new ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>>(3);
 
     /**
      * Dispatch events.
@@ -52,8 +52,7 @@ public class ConnectionEventListener {
      * @param type
      * @param processor
      */
-    public void addConnectionEventProcessor(ConnectionEventType type,
-                                            ConnectionEventProcessor processor) {
+    public void addConnectionEventProcessor(ConnectionEventType type, ConnectionEventProcessor processor) {
         List<ConnectionEventProcessor> processorList = this.processors.get(type);
         if (processorList == null) {
             this.processors.putIfAbsent(type, new ArrayList<ConnectionEventProcessor>(1));

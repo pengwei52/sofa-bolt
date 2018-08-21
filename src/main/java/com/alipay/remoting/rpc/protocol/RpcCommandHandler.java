@@ -63,22 +63,20 @@ public class RpcCommandHandler implements CommandHandler {
     public RpcCommandHandler(CommandFactory commandFactory) {
         this.commandFactory = commandFactory;
         this.processorManager = new ProcessorManager();
-        //process request
-        this.processorManager.registerProcessor(RpcCommandCode.RPC_REQUEST,
-            new RpcRequestProcessor(this.commandFactory));
-        //process response
-        this.processorManager.registerProcessor(RpcCommandCode.RPC_RESPONSE,
-            new RpcResponseProcessor());
-
-        this.processorManager.registerProcessor(CommonCommandCode.HEARTBEAT,
-            new RpcHeartBeatProcessor());
-
-        this.processorManager
-            .registerDefaultProcessor(new AbstractRemotingProcessor<RemotingCommand>() {
+        
+        //process request 注册请求处理器
+        this.processorManager.registerProcessor(RpcCommandCode.RPC_REQUEST, new RpcRequestProcessor(this.commandFactory));
+        //process response 注册响应处理器
+        this.processorManager.registerProcessor(RpcCommandCode.RPC_RESPONSE, new RpcResponseProcessor());
+        
+        // 注册心跳处理器
+        this.processorManager.registerProcessor(CommonCommandCode.HEARTBEAT, new RpcHeartBeatProcessor());
+        
+        // 注册默认处理器
+        this.processorManager.registerDefaultProcessor(new AbstractRemotingProcessor<RemotingCommand>() {
                 @Override
                 public void doProcess(RemotingContext ctx, RemotingCommand msg) throws Exception {
-                    logger.error("No processor available for command code {}, msgId {}",
-                        msg.getCmdCode(), msg.getId());
+                    logger.error("No processor available for command code {}, msgId {}", msg.getCmdCode(), msg.getId());
                 }
             });
     }

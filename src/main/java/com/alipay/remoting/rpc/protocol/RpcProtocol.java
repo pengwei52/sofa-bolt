@@ -63,13 +63,21 @@ import com.alipay.remoting.rpc.RpcCommandFactory;
  * @version $Id: RpcProtocol.java, v 0.1 2015-9-28 PM7:04:04 tao Exp $
  */
 public class RpcProtocol implements Protocol {
+	// 协议码
     public static final byte PROTOCOL_CODE       = (byte) 1;
+    // 请求头长度
     private static final int REQUEST_HEADER_LEN  = 22;
+    // 响应头长度
     private static final int RESPONSE_HEADER_LEN = 20;
+    // 编码器
     private CommandEncoder   encoder;
+    // 解码器
     private CommandDecoder   decoder;
+    // 心跳触发器
     private HeartbeatTrigger heartbeatTrigger;
+    // Command处理器
     private CommandHandler   commandHandler;
+    // Command工厂
     private CommandFactory   commandFactory;
 
     public RpcProtocol() {

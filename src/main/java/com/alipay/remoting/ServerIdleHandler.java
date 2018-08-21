@@ -47,8 +47,7 @@ public class ServerIdleHandler extends ChannelDuplexHandler {
     public void userEventTriggered(final ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             try {
-                logger.warn("Connection idle, close it from server side: {}",
-                    RemotingUtil.parseRemoteAddress(ctx.channel()));
+                logger.warn("Connection idle, close it from server side: {}", RemotingUtil.parseRemoteAddress(ctx.channel()));
                 ctx.close();
             } catch (Exception e) {
                 logger.warn("Exception caught when closing connection in ServerIdleHandler.", e);

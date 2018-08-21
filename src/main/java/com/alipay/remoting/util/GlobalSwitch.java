@@ -34,11 +34,16 @@ import com.alipay.remoting.SystemProperties;
 public class GlobalSwitch implements Switch {
 
     // switches
+	// 连接重连开关
     public static final int CONN_RECONNECT_SWITCH           = 0;
+    // 连接监控开关
     public static final int CONN_MONITOR_SWITCH             = 1;
+    // 服务端连接管理开关
     public static final int SERVER_MANAGE_CONNECTION_SWITCH = 2;
+    // 服务端同步关闭服务开关
     public static final int SERVER_SYNC_STOP                = 3;
 
+    // BitSet的使用方式请参考JDK API
     /** system settings */
     private static BitSet   systemSettings                  = new BitSet();
 

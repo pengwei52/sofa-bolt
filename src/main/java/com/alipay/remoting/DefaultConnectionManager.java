@@ -129,6 +129,7 @@ public class DefaultConnectionManager implements ConnectionManager, ConnectionHe
      */
     protected RemotingAddressParser                                                 addressParser;
 
+    // 连接工厂，创建连接
     /**
      * connection factory
      */

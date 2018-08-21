@@ -155,6 +155,7 @@ public abstract class RemotingServer {
      */
     protected abstract void doStop();
 
+    // 根据CommandCode注册不同类型的处理器(请求、响应、心跳)
     /**
      * Register processor for command with the command code.
      * 

@@ -38,6 +38,8 @@ import io.netty.channel.ChannelHandler.Sharable;
  */
 @Sharable
 public class RpcHandler extends ChannelInboundHandlerAdapter {
+	
+	// 
     private boolean                                     serverSide;
 
     private ConcurrentHashMap<String, UserProcessor<?>> userProcessors;
@@ -46,11 +48,13 @@ public class RpcHandler extends ChannelInboundHandlerAdapter {
         serverSide = false;
     }
 
+    // 客户端
     public RpcHandler(ConcurrentHashMap<String, UserProcessor<?>> userProcessors) {
         serverSide = false;
         this.userProcessors = userProcessors;
     }
 
+    // 服务端
     public RpcHandler(boolean serverSide, ConcurrentHashMap<String, UserProcessor<?>> userProcessors) {
         this.serverSide = serverSide;
         this.userProcessors = userProcessors;
@@ -58,9 +62,11 @@ public class RpcHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    	// 获取协议码
         ProtocolCode protocolCode = ctx.channel().attr(Connection.PROTOCOL).get();
+        // 根据协议码获取指定的协议对象
         Protocol protocol = ProtocolManager.getProtocol(protocolCode);
-        protocol.getCommandHandler().handleCommand(
-            new RemotingContext(ctx, new InvokeContext(), serverSide, userProcessors), msg);
+        // 根据协议获取CommandHandler，再拿到指定的Processor对具体的Command的进行处理
+        protocol.getCommandHandler().handleCommand(new RemotingContext(ctx, new InvokeContext(), serverSide, userProcessors), msg);
     }
 }

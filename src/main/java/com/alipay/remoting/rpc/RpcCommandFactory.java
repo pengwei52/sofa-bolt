@@ -31,15 +31,16 @@ import com.alipay.remoting.rpc.protocol.RpcResponseCommand;
  * @author tsui
  * @version $Id: RpcCommandFactory.java, v 0.1 2018-03-27 21:37 tsui Exp $
  */
+@SuppressWarnings("unchecked")
 public class RpcCommandFactory implements CommandFactory {
-    @Override
+	
+	@Override
     public RpcRequestCommand createRequestCommand(Object requestObject) {
         return new RpcRequestCommand(requestObject);
     }
 
     @Override
-    public RpcResponseCommand createResponse(final Object responseObject,
-                                             final RemotingCommand requestCmd) {
+    public RpcResponseCommand createResponse(final Object responseObject, final RemotingCommand requestCmd) {
         RpcResponseCommand response = new RpcResponseCommand(requestCmd.getId(), responseObject);
         if (null != responseObject) {
             response.setResponseClass(responseObject.getClass().getName());
@@ -65,8 +66,7 @@ public class RpcCommandFactory implements CommandFactory {
             e = new RpcServerException(errMsg);
             response = new RpcResponseCommand(id, e);
         } else {
-            e = new RpcServerException(t.getClass().getName() + ": " + t.getMessage()
-                                       + ". AdditionalErrMsg: " + errMsg);
+            e = new RpcServerException(t.getClass().getName() + ": " + t.getMessage() + ". AdditionalErrMsg: " + errMsg);
             e.setStackTrace(t.getStackTrace());
             response = new RpcResponseCommand(id, e);
         }
@@ -93,8 +93,7 @@ public class RpcCommandFactory implements CommandFactory {
     }
 
     @Override
-    public RemotingCommand createSendFailedResponse(final InetSocketAddress address,
-                                                    Throwable throwable) {
+    public RemotingCommand createSendFailedResponse(final InetSocketAddress address, Throwable throwable) {
         ResponseCommand responseCommand = new ResponseCommand();
         responseCommand.setResponseStatus(ResponseStatus.CLIENT_SEND_ERROR);
         responseCommand.setResponseTimeMillis(System.currentTimeMillis());

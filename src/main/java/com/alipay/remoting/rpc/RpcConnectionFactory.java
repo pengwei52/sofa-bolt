@@ -75,8 +75,7 @@ public class RpcConnectionFactory implements ConnectionFactory {
 
     private Bootstrap                                   bootstrap;
 
-    private ConcurrentHashMap<String, UserProcessor<?>> userProcessors = new ConcurrentHashMap<String, UserProcessor<?>>(
-                                                                           4);
+    private ConcurrentHashMap<String, UserProcessor<?>> userProcessors = new ConcurrentHashMap<String, UserProcessor<?>>(4);
 
     /**
      * @see com.alipay.remoting.ConnectionFactory#init(ConnectionEventHandler)
@@ -107,15 +106,10 @@ public class RpcConnectionFactory implements ConnectionFactory {
 
             protected void initChannel(SocketChannel channel) throws Exception {
                 ChannelPipeline pipeline = channel.pipeline();
-                pipeline.addLast("decoder", new RpcProtocolDecoder(
-                    RpcProtocolManager.DEFAULT_PROTOCOL_CODE_LENGTH));
-                pipeline.addLast(
-                    "encoder",
-                    new ProtocolCodeBasedEncoder(ProtocolCode
-                        .fromBytes(RpcProtocolV2.PROTOCOL_CODE)));
+                pipeline.addLast("decoder", new RpcProtocolDecoder(RpcProtocolManager.DEFAULT_PROTOCOL_CODE_LENGTH));
+                pipeline.addLast("encoder", new ProtocolCodeBasedEncoder(ProtocolCode.fromBytes(RpcProtocolV2.PROTOCOL_CODE)));
                 if (idleSwitch) {
-                    pipeline.addLast("idleStateHandler", new IdleStateHandler(idleTime, idleTime,
-                        0, TimeUnit.MILLISECONDS));
+                    pipeline.addLast("idleStateHandler", new IdleStateHandler(idleTime, idleTime, 0, TimeUnit.MILLISECONDS));
                     pipeline.addLast("heartbeatHandler", heartbeatHandler);
                 }
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
@@ -130,10 +124,8 @@ public class RpcConnectionFactory implements ConnectionFactory {
      */
     @Override
     public Connection createConnection(Url url) throws Exception {
-        ChannelFuture future = doCreateConnection(url.getIp(), url.getPort(),
-            url.getConnectTimeout());
-        Connection conn = new Connection(future.channel(),
-            ProtocolCode.fromBytes(url.getProtocol()), url.getVersion(), url);
+        ChannelFuture future = doCreateConnection(url.getIp(), url.getPort(), url.getConnectTimeout());
+        Connection conn = new Connection(future.channel(), ProtocolCode.fromBytes(url.getProtocol()), url.getVersion(), url);
         future.channel().pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT);
         return conn;
     }

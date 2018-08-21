@@ -45,8 +45,7 @@ public class RpcHeartBeatProcessor extends AbstractRemotingProcessor {
         if (msg instanceof HeartbeatCommand) {// process the heartbeat
             final int id = msg.getId();
             if (logger.isDebugEnabled()) {
-                logger.debug("Heartbeat received! Id=" + id + ", from "
-                             + RemotingUtil.parseRemoteAddress(ctx.getChannelContext().channel()));
+                logger.debug("Heartbeat received! Id=" + id + ", from " + RemotingUtil.parseRemoteAddress(ctx.getChannelContext().channel()));
             }
             HeartbeatAckCommand ack = new HeartbeatAckCommand();
             ack.setId(id);

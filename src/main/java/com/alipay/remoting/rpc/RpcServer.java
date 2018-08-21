@@ -85,8 +85,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class RpcServer extends RemotingServer {
 
     /** logger */
-    private static final Logger                         logger                  = BoltLoggerFactory
-                                                                                    .getLogger("RpcRemoting");
+    private static final Logger                         logger                  = BoltLoggerFactory.getLogger("RpcRemoting");
     /** server bootstrap */
     private ServerBootstrap                             bootstrap;
 
@@ -96,34 +95,32 @@ public class RpcServer extends RemotingServer {
     /** global switch */
     private GlobalSwitch                                globalSwitch            = new GlobalSwitch();
 
+    // 连接事件处理(配合 SERVER_MANAGE_CONNECTION_SWITCH)
     /** connection event handler */
     private ConnectionEventHandler                      connectionEventHandler;
 
+    // 连接事件监听器
     /** connection event listener */
     private ConnectionEventListener                     connectionEventListener = new ConnectionEventListener();
 
+    // rpc服务端用户处理器
     /** user processors of rpc server */
-    private ConcurrentHashMap<String, UserProcessor<?>> userProcessors          = new ConcurrentHashMap<String, UserProcessor<?>>(
-                                                                                    4);
+    private ConcurrentHashMap<String, UserProcessor<?>> userProcessors          = new ConcurrentHashMap<String, UserProcessor<?>>(4);
 
     /** boss event loop group, boss group should not be daemon, need shutdown manually */
     private final EventLoopGroup                        bossGroup               = new NioEventLoopGroup(
                                                                                     1,
-                                                                                    new NamedThreadFactory(
-                                                                                        "Rpc-netty-server-boss",
-                                                                                        false));
+                                                                                    new NamedThreadFactory("Rpc-netty-server-boss", false));
     /** worker event loop group. Reuse I/O worker threads between rpc servers. */
     private final static NioEventLoopGroup              workerGroup             = new NioEventLoopGroup(
-                                                                                    Runtime
-                                                                                        .getRuntime()
-                                                                                        .availableProcessors() * 2,
-                                                                                    new NamedThreadFactory(
-                                                                                        "Rpc-netty-server-worker",
-                                                                                        true));
+                                                                                    Runtime.getRuntime().availableProcessors() * 2,
+                                                                                    new NamedThreadFactory("Rpc-netty-server-worker", true));
 
+    // 地址解析器
     /** address parser to get custom args */
     private RemotingAddressParser                       addressParser;
 
+    // 连接管理器，使用连接工厂创建连接
     /** connection manager */
     private DefaultConnectionManager                    connectionManager;
 
@@ -225,21 +222,18 @@ public class RpcServer extends RemotingServer {
         final RpcHandler rpcHandler = new RpcHandler(true, this.userProcessors);
         this.bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
 
+        	@Override
             protected void initChannel(SocketChannel channel) throws Exception {
                 ChannelPipeline pipeline = channel.pipeline();
-                pipeline.addLast("decoder", new RpcProtocolDecoder(
-                    RpcProtocolManager.DEFAULT_PROTOCOL_CODE_LENGTH));
-                pipeline.addLast(
-                    "encoder",
-                    new ProtocolCodeBasedEncoder(ProtocolCode
-                        .fromBytes(RpcProtocolV2.PROTOCOL_CODE)));
+                pipeline.addLast("decoder", new RpcProtocolDecoder(RpcProtocolManager.DEFAULT_PROTOCOL_CODE_LENGTH));
+                pipeline.addLast("encoder", new ProtocolCodeBasedEncoder(ProtocolCode.fromBytes(RpcProtocolV2.PROTOCOL_CODE)));
                 if (idleSwitch) {
-                    pipeline.addLast("idleStateHandler", new IdleStateHandler(0, 0, idleTime,
-                        TimeUnit.MILLISECONDS));
+                    pipeline.addLast("idleStateHandler", new IdleStateHandler(0, 0, idleTime, TimeUnit.MILLISECONDS));
                     pipeline.addLast("serverIdleHandler", serverIdleHandler);
                 }
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
                 pipeline.addLast("handler", rpcHandler);
+                // 创建连接
                 createConnection(channel);
             }
 
@@ -254,11 +248,14 @@ public class RpcServer extends RemotingServer {
              */
             private void createConnection(SocketChannel channel) {
                 Url url = addressParser.parse(RemotingUtil.parseRemoteAddress(channel));
+                // 如果标志 manageConnection 为true，则使用DefaultConnectionManager添加一个新连接，同时将其与通道绑定。
                 if (globalSwitch.isOn(GlobalSwitch.SERVER_MANAGE_CONNECTION_SWITCH)) {
                     connectionManager.add(new Connection(channel, url), url.getUniqueKey());
                 } else {
+                	// 如果标志 manageConnection 为false，则只需创建一个新连接并将其与通道绑定。
                     new Connection(channel, url);
                 }
+                // 触发用户事件, ConnetionEventHandler#userEventTriggered() 监听处理
                 channel.pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT);
             }
         });
@@ -332,13 +329,14 @@ public class RpcServer extends RemotingServer {
     }
 
     /**
+     * 添加连接事件处理器（CLOSE or CONNECTION）
+     * 
      * Add processor to process connection event.
      *
      * @param type
      * @param processor
      */
-    public void addConnectionEventProcessor(ConnectionEventType type,
-                                            ConnectionEventProcessor processor) {
+    public void addConnectionEventProcessor(ConnectionEventType type, ConnectionEventProcessor processor) {
         this.connectionEventListener.addConnectionEventProcessor(type, processor);
     }
 

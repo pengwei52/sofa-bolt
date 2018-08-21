@@ -72,12 +72,13 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
     /**
      * @see com.alipay.remoting.AbstractRemotingProcessor#process(com.alipay.remoting.RemotingContext, com.alipay.remoting.RemotingCommand, java.util.concurrent.ExecutorService)
      */
-    @Override
-    public void process(RemotingContext ctx, RpcRequestCommand cmd, ExecutorService defaultExecutor)
-                                                                                                    throws Exception {
+    @SuppressWarnings("rawtypes")
+	@Override
+    public void process(RemotingContext ctx, RpcRequestCommand cmd, ExecutorService defaultExecutor) throws Exception {
         if (!deserializeRequestCommand(ctx, cmd, RpcDeserializeLevel.DESERIALIZE_CLAZZ)) {
             return;
         }
+        // 
         UserProcessor userProcessor = ctx.getUserProcessor(cmd.getRequestClass());
         if (userProcessor == null) {
             String errMsg = "No user processor found for request: " + cmd.getRequestClass();
@@ -111,8 +112,7 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
                 return;
             }
             //try get executor with strategy
-            executor = userProcessor.getExecutorSelector().select(cmd.getRequestClass(),
-                cmd.getRequestHeader());
+            executor = userProcessor.getExecutorSelector().select(cmd.getRequestClass(), cmd.getRequestHeader());
         }
 
         // Till now, if executor still null, then try default
@@ -127,7 +127,6 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
     /**
      * @see com.alipay.remoting.AbstractRemotingProcessor#doProcess(com.alipay.remoting.RemotingContext, com.alipay.remoting.RemotingCommand)
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void doProcess(final RemotingContext ctx, RpcRequestCommand cmd) throws Exception {
         long currenTimestamp = System.currentTimeMillis();
@@ -142,6 +141,7 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
         if (!deserializeRequestCommand(ctx, cmd, RpcDeserializeLevel.DESERIALIZE_ALL)) {
             return;
         }
+        // 
         dispatchToUserProcessor(ctx, cmd);
     }
 
@@ -152,8 +152,7 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
      * @param ctx
      * @param response
      */
-    public void sendResponseIfNecessary(final RemotingContext ctx, byte type,
-                                        final RemotingCommand response) {
+    public void sendResponseIfNecessary(final RemotingContext ctx, byte type, final RemotingCommand response) {
         final int id = response.getId();
         if (type != RpcCommandType.REQUEST_ONEWAY) {
             RemotingCommand serializedResponse = response;
@@ -208,7 +207,8 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
      * @param ctx
      * @param cmd
      */
-    private void dispatchToUserProcessor(RemotingContext ctx, RpcRequestCommand cmd) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	private void dispatchToUserProcessor(RemotingContext ctx, RpcRequestCommand cmd) {
         final int id = cmd.getId();
         final byte type = cmd.getType();
         // processor here must not be null, for it have been checked before
@@ -231,21 +231,18 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
         } else {
             try {
                 Object responseObject = processor
-                    .handleRequest(processor.preHandleRequest(ctx, cmd.getRequestObject()),
-                        cmd.getRequestObject());
+                    .handleRequest(processor.preHandleRequest(ctx, cmd.getRequestObject()), cmd.getRequestObject());
 
-                sendResponseIfNecessary(ctx, type,
-                    this.getCommandFactory().createResponse(responseObject, cmd));
+                // 
+                sendResponseIfNecessary(ctx, type, this.getCommandFactory().createResponse(responseObject, cmd));
             } catch (RejectedExecutionException e) {
-                logger
-                    .warn("RejectedExecutionException occurred when do SYNC process in RpcRequestProcessor");
+                logger.warn("RejectedExecutionException occurred when do SYNC process in RpcRequestProcessor");
                 sendResponseIfNecessary(ctx, type, this.getCommandFactory()
                     .createExceptionResponse(id, ResponseStatus.SERVER_THREADPOOL_BUSY));
             } catch (Throwable t) {
                 String errMsg = "SYNC process rpc request failed in RpcRequestProcessor, id=" + id;
                 logger.error(errMsg, t);
-                sendResponseIfNecessary(ctx, type, this.getCommandFactory()
-                    .createExceptionResponse(id, t, errMsg));
+                sendResponseIfNecessary(ctx, type, this.getCommandFactory().createExceptionResponse(id, t, errMsg));
             }
         }
     }

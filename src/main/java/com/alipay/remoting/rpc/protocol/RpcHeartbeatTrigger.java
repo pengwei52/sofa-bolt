@@ -81,6 +81,8 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
             if (!heartbeatSwitch) {
                 return;
             }
+            
+            // 心跳Command
             final HeartbeatCommand heartbeat = new HeartbeatCommand();
 
             final InvokeFuture future = new DefaultInvokeFuture(heartbeat.getId(),
@@ -92,12 +94,10 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                             response = (ResponseCommand) future.waitResponse(0);
                         } catch (InterruptedException e) {
                             logger.error("Heartbeat ack process error! Id={}, from remoteAddr={}",
-                                heartbeat.getId(), RemotingUtil.parseRemoteAddress(ctx.channel()),
-                                e);
+                                heartbeat.getId(), RemotingUtil.parseRemoteAddress(ctx.channel()), e);
                             return;
                         }
-                        if (response != null
-                            && response.getResponseStatus() == ResponseStatus.SUCCESS) {
+                        if (response != null && response.getResponseStatus() == ResponseStatus.SUCCESS) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Heartbeat ack received! Id={}, from remoteAddr={}",
                                     response.getId(),
@@ -124,19 +124,21 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                         return ctx.channel().remoteAddress().toString();
                     }
                 }, null, heartbeat.getProtocolCode().getFirstByte(), this.commandFactory);
+            
             final int heartbeatId = heartbeat.getId();
             conn.addInvokeFuture(future);
             if (logger.isDebugEnabled()) {
                 logger.debug("Send heartbeat, successive count={}, Id={}, to remoteAddr={}",
                     heartbeatTimes, heartbeatId, RemotingUtil.parseRemoteAddress(ctx.channel()));
             }
+            
+            //
             ctx.writeAndFlush(heartbeat).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Send heartbeat done! Id={}, to remoteAddr={}",
-                                heartbeatId, RemotingUtil.parseRemoteAddress(ctx.channel()));
+                            logger.debug("Send heartbeat done! Id={}, to remoteAddr={}", heartbeatId, RemotingUtil.parseRemoteAddress(ctx.channel()));
                         }
                     } else {
                         logger.error("Send heartbeat failed! Id={}, to remoteAddr={}", heartbeatId,
@@ -144,13 +146,14 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                     }
                 }
             });
+            
+            //
             TimerHolder.getTimer().newTimeout(new TimerTask() {
                 @Override
                 public void run(Timeout timeout) throws Exception {
                     InvokeFuture future = conn.removeInvokeFuture(heartbeatId);
                     if (future != null) {
-                        future.putResponse(commandFactory.createTimeoutResponse(conn
-                            .getRemoteAddress()));
+                        future.putResponse(commandFactory.createTimeoutResponse(conn.getRemoteAddress()));
                         future.tryAsyncExecuteInvokeCallbackAbnormally();
                     }
                 }

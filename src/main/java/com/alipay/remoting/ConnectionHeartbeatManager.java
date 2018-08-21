@@ -17,6 +17,8 @@
 package com.alipay.remoting;
 
 /**
+ * 在运行时为特定连接开启心跳
+ * 
  * Connection heart beat manager, operate heart beat whether enabled for a certain connection at runtime
  * 
  * @author xiaomin.cxm
@@ -32,6 +34,8 @@ public interface ConnectionHeartbeatManager {
     public void disableHeartbeat(Connection connection);
 
     /**
+     * 为某一个特定连接开启心跳
+     * 
      * enable heart beat for a certain connection
      * 
      * @param connection

@@ -38,6 +38,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.util.AttributeKey;
 
 /**
+ * 对Channel进行包装
+ * 
  * An abstraction of socket channel.
  *
  * @author yunliang.shi
@@ -45,44 +47,37 @@ import io.netty.util.AttributeKey;
  */
 public class Connection {
 
-    private static final Logger                                                   logger           = BoltLoggerFactory
-                                                                                                       .getLogger("CommonDefault");
+    private static final Logger                                                   logger           = BoltLoggerFactory.getLogger("CommonDefault");
 
     private Channel                                                               channel;
 
-    private final ConcurrentHashMap<Integer, InvokeFuture>                        invokeFutureMap  = new ConcurrentHashMap<Integer, InvokeFuture>(
-                                                                                                       4);
+    private final ConcurrentHashMap<Integer, InvokeFuture>                        invokeFutureMap  = new ConcurrentHashMap<Integer, InvokeFuture>(4);
 
+    // AttributeKey -> 可用于从AttributeMap中访问属性的键
+    
     /** Attribute key for connection */
-    public static final AttributeKey<Connection>                                  CONNECTION       = AttributeKey
-                                                                                                       .valueOf("connection");
+    public static final AttributeKey<Connection>                                  CONNECTION       = AttributeKey.valueOf("connection");
     /** Attribute key for heartbeat count */
-    public static final AttributeKey<Integer>                                     HEARTBEAT_COUNT  = AttributeKey
-                                                                                                       .valueOf("heartbeatCount");
+    public static final AttributeKey<Integer>                                     HEARTBEAT_COUNT  = AttributeKey.valueOf("heartbeatCount");
 
     /** Attribute key for heartbeat switch for each connection */
-    public static final AttributeKey<Boolean>                                     HEARTBEAT_SWITCH = AttributeKey
-                                                                                                       .valueOf("heartbeatSwitch");
+    public static final AttributeKey<Boolean>                                     HEARTBEAT_SWITCH = AttributeKey.valueOf("heartbeatSwitch");
 
     /** Attribute key for protocol */
-    public static final AttributeKey<ProtocolCode>                                PROTOCOL         = AttributeKey
-                                                                                                       .valueOf("protocol");
+    public static final AttributeKey<ProtocolCode>                                PROTOCOL         = AttributeKey.valueOf("protocol");
     private ProtocolCode                                                          protocolCode;
 
     /** Attribute key for version */
-    public static final AttributeKey<Byte>                                        VERSION          = AttributeKey
-                                                                                                       .valueOf("version");
+    public static final AttributeKey<Byte>                                        VERSION          = AttributeKey.valueOf("version");
     private byte                                                                  version          = RpcProtocolV2.PROTOCOL_VERSION_1;
 
     private Url                                                                   url;
 
-    private final ConcurrentHashMap<Integer/* id */, String/* poolKey */>       id2PoolKey       = new ConcurrentHashMap<Integer, String>(
-                                                                                                       256);
+    private final ConcurrentHashMap<Integer/* id */, String/* poolKey */>       id2PoolKey       = new ConcurrentHashMap<Integer, String>(256);
 
     private Set<String>                                                           poolKeys         = new ConcurrentHashSet<String>();
 
-    private AtomicBoolean                                                         closed           = new AtomicBoolean(
-                                                                                                       false);
+    private AtomicBoolean                                                         closed           = new AtomicBoolean(false);
 
     private final ConcurrentHashMap<String/* attr key*/, Object /*attr value*/> attributes       = new ConcurrentHashMap<String, Object>();
 
@@ -99,6 +94,7 @@ public class Connection {
      */
     public Connection(Channel channel) {
         this.channel = channel;
+        // 将当前对象放到AttributeMap中，在通讯过程中进行传输
         this.channel.attr(CONNECTION).set(this);
     }
 

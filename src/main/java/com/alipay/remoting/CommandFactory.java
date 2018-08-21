@@ -45,8 +45,7 @@ public interface CommandFactory {
      * @param <T>
      * @return
      */
-    <T extends RemotingCommand> T createResponse(final Object responseObject,
-                                                 RemotingCommand requestCmd);
+    <T extends RemotingCommand> T createResponse(final Object responseObject, RemotingCommand requestCmd);
 
     <T extends RemotingCommand> T createExceptionResponse(int id, String errMsg);
 
@@ -56,9 +55,7 @@ public interface CommandFactory {
 
     <T extends RemotingCommand> T createTimeoutResponse(final InetSocketAddress address);
 
-    <T extends RemotingCommand> T createSendFailedResponse(final InetSocketAddress address,
-                                                           Throwable throwable);
+    <T extends RemotingCommand> T createSendFailedResponse(final InetSocketAddress address, Throwable throwable);
 
-    <T extends RemotingCommand> T createConnectionClosedResponse(final InetSocketAddress address,
-                                                                 String message);
+    <T extends RemotingCommand> T createConnectionClosedResponse(final InetSocketAddress address, String message);
 }
