@@ -24,13 +24,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
+import com.alipay.remoting.config.ConfigManager;
 import com.alipay.remoting.log.BoltLoggerFactory;
 
 /**
- * <pre>
- * 通过command code维护command和command处理器之间的关系。
- * </pre>
- * 
  * Manager of processors<br>
  * Maintains the relationship between command and command processor through command code.
  * 
@@ -38,29 +35,32 @@ import com.alipay.remoting.log.BoltLoggerFactory;
  * @version $Id: ProcessorManager.java, v 0.1 Sept 6, 2015 2:49:47 PM tao Exp $
  */
 public class ProcessorManager {
-    private static final Logger                                  logger         = BoltLoggerFactory.getLogger("CommonDefault");
-    
-    // 命令码与处理器的映射
-    private ConcurrentHashMap<CommandCode, RemotingProcessor<?>> cmd2processors = new ConcurrentHashMap<CommandCode, RemotingProcessor<?>>(4);
+    private static final Logger                                  logger         = BoltLoggerFactory
+                                                                                    .getLogger("CommonDefault");
+    private ConcurrentHashMap<CommandCode, RemotingProcessor<?>> cmd2processors = new ConcurrentHashMap<CommandCode, RemotingProcessor<?>>(
+                                                                                    4);
 
-    // 默认处理器
     private RemotingProcessor<?>                                 defaultProcessor;
 
     /** The default executor, if no executor is set for processor, this one will be used */
     private ExecutorService                                      defaultExecutor;
 
-    private int                                                  minPoolSize    = SystemProperties.default_tp_min_size();
+    private int                                                  minPoolSize    = ConfigManager
+                                                                                    .default_tp_min_size();
 
-    private int                                                  maxPoolSize    = SystemProperties.default_tp_max_size();
+    private int                                                  maxPoolSize    = ConfigManager
+                                                                                    .default_tp_max_size();
 
-    private int                                                  queueSize      = SystemProperties.default_tp_queue_size();
+    private int                                                  queueSize      = ConfigManager
+                                                                                    .default_tp_queue_size();
 
-    private long                                                 keepAliveTime  = SystemProperties.default_tp_keepalive_time();
+    private long                                                 keepAliveTime  = ConfigManager
+                                                                                    .default_tp_keepalive_time();
 
     public ProcessorManager() {
-    	// 默认处理线程池
         defaultExecutor = new ThreadPoolExecutor(minPoolSize, maxPoolSize, keepAliveTime,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new NamedThreadFactory("Bolt-default-executor", true));
+            TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new NamedThreadFactory(
+                "Bolt-default-executor", true));
     }
 
     /**
@@ -70,9 +70,12 @@ public class ProcessorManager {
      * @param processor
      */
     public void registerProcessor(CommandCode cmdCode, RemotingProcessor<?> processor) {
-        if (this.cmd2processors.contains(cmdCode)) {
-            logger.warn("Processor for cmd={} is already registered, the processor is {}, and changed to {}",
-                    cmdCode, cmd2processors.get(cmdCode).getClass().getName(), processor.getClass().getName());
+        if (this.cmd2processors.containsKey(cmdCode)) {
+            logger
+                .warn(
+                    "Processor for cmd={} is already registered, the processor is {}, and changed to {}",
+                    cmdCode, cmd2processors.get(cmdCode).getClass().getName(), processor.getClass()
+                        .getName());
         }
         this.cmd2processors.put(cmdCode, processor);
     }
@@ -86,7 +89,8 @@ public class ProcessorManager {
         if (this.defaultProcessor == null) {
             this.defaultProcessor = processor;
         } else {
-            throw new IllegalStateException("The defaultProcessor has already been registered: " + this.defaultProcessor.getClass());
+            throw new IllegalStateException("The defaultProcessor has already been registered: "
+                                            + this.defaultProcessor.getClass());
         }
     }
 

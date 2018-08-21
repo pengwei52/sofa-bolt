@@ -53,6 +53,9 @@ public interface CommandFactory {
 
     <T extends RemotingCommand> T createExceptionResponse(int id, ResponseStatus status);
 
+    <T extends RemotingCommand> T createExceptionResponse(int id, ResponseStatus status,
+                                                          final Throwable t);
+
     <T extends RemotingCommand> T createTimeoutResponse(final InetSocketAddress address);
 
     <T extends RemotingCommand> T createSendFailedResponse(final InetSocketAddress address, Throwable throwable);
