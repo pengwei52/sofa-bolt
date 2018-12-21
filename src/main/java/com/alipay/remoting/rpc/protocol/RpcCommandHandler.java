@@ -119,8 +119,11 @@ public class RpcCommandHandler implements CommandHandler {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void process(RemotingContext ctx, Object msg) {
         try {
+        	// 已经解码的Command对象
             RpcCommand cmd = (RpcCommand) msg;
+            // 根据CommandCode获取对应的CommandProcessor（RPC请求处理、RPC响应处理、心跳处理）
             RemotingProcessor processor = processorManager.getProcessor(cmd.getCmdCode());
+            // 处理
             processor.process(ctx, cmd, processorManager.getDefaultExecutor());
         } catch (Throwable t) {
             processException(ctx, msg, t);

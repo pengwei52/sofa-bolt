@@ -44,6 +44,7 @@ import com.alipay.remoting.util.RemotingUtil;
  * @version $Id: RpcRemoting.java, v 0.1 Mar 6, 2016 9:09:48 PM tao Exp $
  */
 public abstract class RpcRemoting extends BaseRemoting {
+	// 协议管理器初始化
     static {
         RpcProtocolManager.initProtocols();
     }
