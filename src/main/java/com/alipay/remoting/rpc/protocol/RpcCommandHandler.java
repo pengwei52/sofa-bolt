@@ -37,6 +37,7 @@ import com.alipay.remoting.rpc.RequestCommand;
 import com.alipay.remoting.rpc.ResponseCommand;
 import com.alipay.remoting.rpc.RpcCommand;
 import com.alipay.remoting.rpc.RpcCommandType;
+import com.alipay.remoting.rpc.RpcConfigManager;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -63,20 +64,22 @@ public class RpcCommandHandler implements CommandHandler {
     public RpcCommandHandler(CommandFactory commandFactory) {
         this.commandFactory = commandFactory;
         this.processorManager = new ProcessorManager();
-        
-        //process request 注册请求处理器
-        this.processorManager.registerProcessor(RpcCommandCode.RPC_REQUEST, new RpcRequestProcessor(this.commandFactory));
-        //process response 注册响应处理器
-        this.processorManager.registerProcessor(RpcCommandCode.RPC_RESPONSE, new RpcResponseProcessor());
-        
-        // 注册心跳处理器
-        this.processorManager.registerProcessor(CommonCommandCode.HEARTBEAT, new RpcHeartBeatProcessor());
-        
-        // 注册默认处理器
-        this.processorManager.registerDefaultProcessor(new AbstractRemotingProcessor<RemotingCommand>() {
+        //process request
+        this.processorManager.registerProcessor(RpcCommandCode.RPC_REQUEST,
+            new RpcRequestProcessor(this.commandFactory));
+        //process response
+        this.processorManager.registerProcessor(RpcCommandCode.RPC_RESPONSE,
+            new RpcResponseProcessor());
+
+        this.processorManager.registerProcessor(CommonCommandCode.HEARTBEAT,
+            new RpcHeartBeatProcessor());
+
+        this.processorManager
+            .registerDefaultProcessor(new AbstractRemotingProcessor<RemotingCommand>() {
                 @Override
                 public void doProcess(RemotingContext ctx, RemotingCommand msg) throws Exception {
-                    logger.error("No processor available for command code {}, msgId {}", msg.getCmdCode(), msg.getId());
+                    logger.error("No processor available for command code {}, msgId {}",
+                        msg.getCmdCode(), msg.getId());
                 }
             });
     }
@@ -94,24 +97,29 @@ public class RpcCommandHandler implements CommandHandler {
      */
     private void handle(final RemotingContext ctx, final Object msg) {
         try {
-            // If msg is list ,then the batch submission to biz threadpool can save io thread.
-            // See com.alipay.remoting.decoder.ProtocolDecoder
             if (msg instanceof List) {
-                processorManager.getDefaultExecutor().execute(new Runnable() {
+                final Runnable handleTask = new Runnable() {
                     @Override
                     public void run() {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Batch message! size={}", ((List<?>) msg).size());
                         }
-                        for (Object m : (List<?>) msg) {
+                        for (final Object m : (List<?>) msg) {
                             RpcCommandHandler.this.process(ctx, m);
                         }
                     }
-                });
+                };
+                if (RpcConfigManager.dispatch_msg_list_in_default_executor()) {
+                    // If msg is list ,then the batch submission to biz threadpool can save io thread.
+                    // See com.alipay.remoting.decoder.ProtocolDecoder
+                    processorManager.getDefaultExecutor().execute(handleTask);
+                } else {
+                    handleTask.run();
+                }
             } else {
                 process(ctx, msg);
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             processException(ctx, msg, t);
         }
     }
@@ -119,20 +127,17 @@ public class RpcCommandHandler implements CommandHandler {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void process(RemotingContext ctx, Object msg) {
         try {
-        	// 已经解码的Command对象
-            RpcCommand cmd = (RpcCommand) msg;
-            // 根据CommandCode获取对应的CommandProcessor（RPC请求处理、RPC响应处理、心跳处理）
-            RemotingProcessor processor = processorManager.getProcessor(cmd.getCmdCode());
-            // 处理
+            final RpcCommand cmd = (RpcCommand) msg;
+            final RemotingProcessor processor = processorManager.getProcessor(cmd.getCmdCode());
             processor.process(ctx, cmd, processorManager.getDefaultExecutor());
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             processException(ctx, msg, t);
         }
     }
 
     private void processException(RemotingContext ctx, Object msg, Throwable t) {
         if (msg instanceof List) {
-            for (Object m : (List<?>) msg) {
+            for (final Object m : (List<?>) msg) {
                 processExceptionForSingleCommand(ctx, m, t);
             }
         } else {
@@ -145,17 +150,17 @@ public class RpcCommandHandler implements CommandHandler {
      */
     private void processExceptionForSingleCommand(RemotingContext ctx, Object msg, Throwable t) {
         final int id = ((RpcCommand) msg).getId();
-        String emsg = "Exception caught when processing "
-                      + ((msg instanceof RequestCommand) ? "request, id=" : "response, id=");
+        final String emsg = "Exception caught when processing "
+                            + ((msg instanceof RequestCommand) ? "request, id=" : "response, id=");
         logger.warn(emsg + id, t);
         if (msg instanceof RequestCommand) {
-            RequestCommand cmd = (RequestCommand) msg;
+            final RequestCommand cmd = (RequestCommand) msg;
             if (cmd.getType() != RpcCommandType.REQUEST_ONEWAY) {
                 if (t instanceof RejectedExecutionException) {
                     final ResponseCommand response = this.commandFactory.createExceptionResponse(
                         id, ResponseStatus.SERVER_THREADPOOL_BUSY);
                     // RejectedExecutionException here assures no response has been sent back
-                    // Other exceptions should be processed where exception was caught, because here we don't known whether ack had been sent back.  
+                    // Other exceptions should be processed where exception was caught, because here we don't known whether ack had been sent back.
                     ctx.getChannelContext().writeAndFlush(response)
                         .addListener(new ChannelFutureListener() {
                             @Override
@@ -180,7 +185,7 @@ public class RpcCommandHandler implements CommandHandler {
         }
     }
 
-    /** 
+    /**
      * @see CommandHandler#registerProcessor(com.alipay.remoting.CommandCode, RemotingProcessor)
      */
     @Override
@@ -189,7 +194,7 @@ public class RpcCommandHandler implements CommandHandler {
         this.processorManager.registerProcessor(cmd, processor);
     }
 
-    /** 
+    /**
      * @see CommandHandler#registerDefaultExecutor(java.util.concurrent.ExecutorService)
      */
     @Override
@@ -197,7 +202,7 @@ public class RpcCommandHandler implements CommandHandler {
         this.processorManager.registerDefaultExecutor(executor);
     }
 
-    /** 
+    /**
      * @see CommandHandler#getDefaultExecutor()
      */
     @Override

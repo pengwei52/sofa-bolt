@@ -90,8 +90,6 @@ public class RpcProtocol implements Protocol {
 
     /**
      * Get the length of request header.
-     * 
-     * @return
      */
     public static int getRequestHeaderLength() {
         return RpcProtocol.REQUEST_HEADER_LEN;
@@ -99,8 +97,6 @@ public class RpcProtocol implements Protocol {
 
     /**
      * Get the length of response header.
-     * 
-     * @return
      */
     public static int getResponseHeaderLength() {
         return RpcProtocol.RESPONSE_HEADER_LEN;

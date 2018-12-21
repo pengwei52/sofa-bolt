@@ -31,7 +31,7 @@ public interface ConnectionHeartbeatManager {
      * 
      * @param connection
      */
-    public void disableHeartbeat(Connection connection);
+    void disableHeartbeat(Connection connection);
 
     /**
      * 为某一个特定连接开启心跳
@@ -40,5 +40,5 @@ public interface ConnectionHeartbeatManager {
      * 
      * @param connection
      */
-    public void enableHeartbeat(Connection connection);
+    void enableHeartbeat(Connection connection);
 }

@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.remoting.connection;
-
-import com.alipay.remoting.codec.Codec;
-import com.alipay.remoting.config.ConfigurableInstance;
-
-import io.netty.channel.ChannelHandler;
+package com.alipay.remoting.util;
 
 /**
- * Default connection factory.
- *
- * @author chengyi (mark.lx@antfin.com) 2018-06-20 15:18
+ * @author chengyi (mark.lx@antfin.com) 2018-10-18 16:30
  */
-public class DefaultConnectionFactory extends AbstractConnectionFactory {
+public class FutureTaskNotCompleted extends Exception {
 
-    public DefaultConnectionFactory(Codec codec, ChannelHandler heartbeatHandler,
-                                    ChannelHandler handler, ConfigurableInstance configInstance) {
-        super(codec, heartbeatHandler, handler, configInstance);
+    private static final long serialVersionUID = -3635466558774380138L;
+
+    public FutureTaskNotCompleted() {
+    }
+
+    public FutureTaskNotCompleted(String message) {
+        super(message);
+    }
+
+    public FutureTaskNotCompleted(String message, Throwable cause) {
+        super(message, cause);
     }
 }
