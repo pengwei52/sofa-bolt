@@ -17,16 +17,30 @@
 package com.alipay.remoting;
 
 /**
- * Process connection events.
- * @author jiangping
- * @version $Id: ConnectionEventProcessor.java, v 0.1 Mar 5, 2016 11:01:07 AM tao Exp $
+ * Reconnect manager interface.
+ *
+ * @author chengyi (mark.lx@antfin.com) 2018-11-05 17:43
  */
-public interface ConnectionEventProcessor {
+public interface Reconnector extends LifeCycle {
+
     /**
-     * Process event.<br>
-     * 
-     * @param remoteAddress remoting connection
-     * @param connection Connection
+     * Do reconnecting in async mode.
+     *
+     * @param url target url
      */
-    void onEvent(String remoteAddress, Connection connection);
+    void reconnect(Url url);
+
+    /**
+     * Disable reconnect to the target url.
+     *
+     * @param url target url
+     */
+    void disableReconnect(Url url);
+
+    /**
+     * Enable reconnect to the target url.
+     *
+     * @param url target url
+     */
+    void enableReconnect(Url url);
 }

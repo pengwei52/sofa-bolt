@@ -14,19 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.remoting;
+package com.alipay.remoting.constant;
 
 /**
- * Process connection events.
- * @author jiangping
- * @version $Id: ConnectionEventProcessor.java, v 0.1 Mar 5, 2016 11:01:07 AM tao Exp $
+ * Bolt Constants.
+ *
+ * @author chengyi (mark.lx@antfin.com) 2019-03-06 15:19
  */
-public interface ConnectionEventProcessor {
+public class Constants {
+
     /**
-     * Process event.<br>
-     * 
-     * @param remoteAddress remoting connection
-     * @param connection Connection
+     * default expire time to remove connection pool, time unit: milliseconds
      */
-    void onEvent(String remoteAddress, Connection connection);
+    public static final int DEFAULT_EXPIRE_TIME = 10 * 60 * 1000;
+
+    /**
+     * default retry times when failed to get result of FutureTask
+     */
+    public static final int DEFAULT_RETRY_TIMES = 2;
+
 }

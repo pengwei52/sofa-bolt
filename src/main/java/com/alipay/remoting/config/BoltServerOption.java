@@ -14,19 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.remoting;
+package com.alipay.remoting.config;
 
 /**
- * Process connection events.
- * @author jiangping
- * @version $Id: ConnectionEventProcessor.java, v 0.1 Mar 5, 2016 11:01:07 AM tao Exp $
+ * Supported options in server side.
+ *
+ * @author chengyi (mark.lx@antfin.com) 2018-11-06 18:00
  */
-public interface ConnectionEventProcessor {
-    /**
-     * Process event.<br>
-     * 
-     * @param remoteAddress remoting connection
-     * @param connection Connection
-     */
-    void onEvent(String remoteAddress, Connection connection);
+public class BoltServerOption<T> extends BoltGenericOption<T> {
+
+    public static final BoltOption<Integer> TCP_SO_BACKLOG  = valueOf("bolt.tcp.so.backlog", 1024);
+
+    public static final BoltOption<Boolean> NETTY_EPOLL_LT  = valueOf("bolt.netty.epoll.lt", true);
+
+    public static final BoltOption<Integer> TCP_SERVER_IDLE = valueOf(
+                                                                "bolt.tcp.server.idle.interval",
+                                                                90 * 1000);
+
+    private BoltServerOption(String name, T defaultValue) {
+        super(name, defaultValue);
+    }
 }

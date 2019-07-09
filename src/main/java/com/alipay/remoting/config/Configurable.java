@@ -14,19 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alipay.remoting;
+package com.alipay.remoting.config;
 
 /**
- * Process connection events.
- * @author jiangping
- * @version $Id: ConnectionEventProcessor.java, v 0.1 Mar 5, 2016 11:01:07 AM tao Exp $
+ * Config interface.
+ *
+ * @author chengyi (mark.lx@antfin.com) 2018-11-06 14:46
  */
-public interface ConnectionEventProcessor {
+public interface Configurable {
+
     /**
-     * Process event.<br>
-     * 
-     * @param remoteAddress remoting connection
-     * @param connection Connection
+     * Get the option value.
+     *
+     * @param option target option
+     * @return BoltOption
      */
-    void onEvent(String remoteAddress, Connection connection);
+    <T> T option(BoltOption<T> option);
+
+    /**
+     * Allow to specify a {@link BoltOption} which is used for the {@link Configurable} instances once they got
+     * created. Use a value of {@code null} to remove a previous set {@link BoltOption}.
+     *
+     * @param option target option
+     * @param value option value, null to remove the previous option
+     * @return Configurable instance
+     */
+    <T> Configurable option(BoltOption<T> option, T value);
+
 }

@@ -17,16 +17,15 @@
 package com.alipay.remoting;
 
 /**
- * Process connection events.
- * @author jiangping
- * @version $Id: ConnectionEventProcessor.java, v 0.1 Mar 5, 2016 11:01:07 AM tao Exp $
+ * Do some preparatory work in order to refactor the ConnectionManager in the next version.
+ *
+ * @author chengyi (mark.lx@antfin.com) 2019-03-07 14:40
  */
-public interface ConnectionEventProcessor {
-    /**
-     * Process event.<br>
-     * 
-     * @param remoteAddress remoting connection
-     * @param connection Connection
-     */
-    void onEvent(String remoteAddress, Connection connection);
+public class DefaultServerConnectionManager extends DefaultConnectionManager implements
+                                                                            ServerConnectionManager {
+
+    public DefaultServerConnectionManager(ConnectionSelectStrategy connectionSelectStrategy) {
+        super(connectionSelectStrategy);
+    }
+
 }
